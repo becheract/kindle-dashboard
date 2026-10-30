@@ -9,6 +9,9 @@ This guide has two parts:
 - [Part 1: Setting up the server](#part-1-setting-up-the-server). One person does this once.
 - [Part 2: Using Kindle Dashboard](#part-2-using-kindle-dashboard). This is for everyone who reads.
 
+To browse and download books from the server on a Kindle with KOReader, see
+[Get books from your server on your Kindle](BOOKS.md).
+
 ---
 
 ## Part 1: Setting up the server

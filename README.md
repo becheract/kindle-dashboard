@@ -4,6 +4,7 @@ A self-hosted dashboard for your Kindle. It shows every book you've read and, fo
 one, your highlights, your notes, and the words you looked up, with definitions.
 
 **→ [Read the guide](docs/GUIDE.md)** to install it on an Ubuntu server and use it.
+To download books from the same server on a Kindle with KOReader, see [docs/BOOKS.md](docs/BOOKS.md).
 
 ## Quick start (Ubuntu)
 
@@ -33,7 +34,7 @@ npm run parse -- --clippings "My Clippings.txt" --vocab vocab.db --out library.j
 | `src/titles.ts` | Turns file-name titles into a clean title and author |
 | `src/library.ts` | Combines both into one library grouped by book |
 | `src/server/` | The website (Hono with built-in `node:sqlite`): accounts, uploads, book pages, the definition cache, `/api/sync` |
-| `deploy/` | Installer and systemd service |
+| `deploy/` | Installer and systemd services (the dashboard, and the optional Calibre book server) |
 
 Each user's library is stored as one JSON document, and new uploads are merged into it,
 so uploads only ever add. Definitions come from [dictionaryapi.dev](https://dictionaryapi.dev)
