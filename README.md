@@ -1,4 +1,4 @@
-# Marginalia
+# Kindle Dashboard
 
 A self-hosted dashboard for your Kindle. It shows every book you've read and, for each
 one, your highlights, your notes, and the words you looked up, with definitions.
@@ -8,7 +8,7 @@ one, your highlights, your notes, and the words you looked up, with definitions.
 ## Quick start (Ubuntu)
 
 ```bash
-git clone https://github.com/<your-account>/kindle-dashboard.git
+git clone https://github.com/becheract/kindle-dashboard.git
 cd kindle-dashboard
 sudo ./deploy/install.sh
 ```

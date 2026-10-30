@@ -1,19 +1,19 @@
-# Marginalia guide
+# Kindle Dashboard guide
 
-Marginalia is a private website for your Kindle reading. It shows every book you've
+Kindle Dashboard is a private website for your Kindle reading. It shows every book you've
 read and, for each one, your highlights, the notes you typed, and the words you
 looked up, with the sentence you found them in and their definition.
 
 This guide has two parts:
 
 - [Part 1: Setting up the server](#part-1-setting-up-the-server). One person does this once.
-- [Part 2: Using Marginalia](#part-2-using-marginalia). This is for everyone who reads.
+- [Part 2: Using Kindle Dashboard](#part-2-using-kindle-dashboard). This is for everyone who reads.
 
 ---
 
 ## Part 1: Setting up the server
 
-Marginalia runs on an Ubuntu computer on your home network. Anyone on the same Wi‑Fi
+Kindle Dashboard runs on an Ubuntu computer on your home network. Anyone on the same Wi‑Fi
 can use it. It isn't reachable from outside your home.
 
 ### What you need
@@ -26,7 +26,7 @@ You don't need Docker. The installer installs Node.js 22 for you if it's missing
 ### Install
 
 ```bash
-git clone https://github.com/<your-account>/kindle-dashboard.git
+git clone https://github.com/becheract/kindle-dashboard.git
 cd kindle-dashboard
 sudo ./deploy/install.sh
 ```
@@ -38,15 +38,15 @@ What the installer sets up:
 
 | What | Where |
 | --- | --- |
-| The app | `/opt/marginalia` |
-| Your data (one database file) | `/var/lib/marginalia/marginalia.db` |
-| Settings | `/etc/marginalia.env` |
-| Background service | `marginalia` (starts automatically when the server boots) |
+| The app | `/opt/kindle-dashboard` |
+| Your data (one database file) | `/var/lib/kindle-dashboard/kindle-dashboard.db` |
+| Settings | `/etc/kindle-dashboard.env` |
+| Background service | `kindle-dashboard` (starts automatically when the server boots) |
 
 ### Settings
 
-Edit `/etc/marginalia.env` with `sudo nano /etc/marginalia.env`, then run
-`sudo systemctl restart marginalia`.
+Edit `/etc/kindle-dashboard.env` with `sudo nano /etc/kindle-dashboard.env`, then run
+`sudo systemctl restart kindle-dashboard`.
 
 - **`TZ`**: your time zone, so word lookups show the right time. Example: `America/Toronto`.
 - **`PORT`**: the port the site listens on. The default is `3000`.
@@ -57,7 +57,7 @@ Edit `/etc/marginalia.env` with `sudo nano /etc/marginalia.env`, then run
 - Make sure the other device is on the same Wi‑Fi as the server.
 - If Ubuntu's firewall is on, allow the port from your home network:
   `sudo ufw allow from 192.168.0.0/16 to any port 3000`
-- Check that it's running with `systemctl status marginalia`. See the log with `journalctl -u marginalia -n 50`.
+- Check that it's running with `systemctl status kindle-dashboard`. See the log with `journalctl -u kindle-dashboard -n 50`.
 
 ### Updating
 
@@ -71,15 +71,15 @@ Updating keeps your data and settings.
 
 ### Backups
 
-Everything lives in `/var/lib/marginalia/marginalia.db`. To make a backup:
+Everything lives in `/var/lib/kindle-dashboard/kindle-dashboard.db`. To make a backup:
 
 ```bash
-sudo cp /var/lib/marginalia/marginalia.db ~/marginalia-backup-$(date +%F).db
+sudo cp /var/lib/kindle-dashboard/kindle-dashboard.db ~/kindle-dashboard-backup-$(date +%F).db
 ```
 
 ---
 
-## Part 2: Using Marginalia
+## Part 2: Using Kindle Dashboard
 
 ### 1. Create your account
 
@@ -140,9 +140,9 @@ curl -H "Authorization: Bearer YOUR_SYNC_KEY" \
 ## Things to know
 
 - **Duplicate highlights.** When you stretch or redo a highlight, the Kindle keeps both
-  versions. Marginalia shows only the longer one.
+  versions. Kindle Dashboard shows only the longer one.
 - **Messy titles.** Books you added yourself often have file-name titles like
-  `Title -- Author -- 2010 -- …`. Marginalia tidies these into a title and author.
+  `Title -- Author -- 2010 -- …`. Kindle Dashboard tidies these into a title and author.
 - **The same book twice.** Two different files of the same book show as two books.
 - **Deleted highlights.** The Kindle doesn't record deletions in `My Clippings.txt`, so a highlight you deleted can still appear.
 - **Language.** Dates and definitions currently assume an English Kindle.

@@ -65,7 +65,7 @@ export function layout(title: string, body: string, opts: { email?: string; flas
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title><style>${CSS}</style></head>
-<body><header><a class="brand" href="/">Marginalia</a>${nav}</header>
+<body><header><a class="brand" href="/">Kindle Dashboard</a>${nav}</header>
 <main>${opts.flash ? `<div class="flash">${esc(opts.flash)}</div>` : ""}${body}</main></body></html>`;
 }
 

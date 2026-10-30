@@ -1,14 +1,14 @@
 [Unit]
-Description=Marginalia - Kindle highlights and vocabulary dashboard
+Description=Kindle Dashboard - Kindle highlights and vocabulary dashboard
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=marginalia
-Group=marginalia
-WorkingDirectory=/opt/marginalia
-EnvironmentFile=/etc/marginalia.env
+User=kindle-dashboard
+Group=kindle-dashboard
+WorkingDirectory=/opt/kindle-dashboard
+EnvironmentFile=/etc/kindle-dashboard.env
 ExecStart=/usr/bin/node --experimental-strip-types --no-warnings src/server/index.ts
 Restart=on-failure
 RestartSec=5
@@ -18,7 +18,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/var/lib/marginalia
+ReadWritePaths=/var/lib/kindle-dashboard
 
 [Install]
 WantedBy=multi-user.target
