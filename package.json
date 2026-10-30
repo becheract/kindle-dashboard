@@ -1,0 +1,19 @@
+{
+  "name": "kindle-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-strip-types --no-warnings src/server/index.ts",
+    "parse": "node --experimental-strip-types --no-warnings src/cli.ts",
+    "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.13.14",
+    "sql.js": "^1.10.3"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}
