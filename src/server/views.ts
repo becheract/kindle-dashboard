@@ -59,7 +59,7 @@ code { font-size:13px; background:var(--line); padding:2px 6px; border-radius:4p
 
 export function layout(title: string, body: string, opts: { email?: string; flash?: string } = {}): string {
   const nav = opts.email
-    ? `<nav><a href="/">Library</a><a href="/upload">Upload</a><a href="/settings">Settings</a>
+    ? `<nav><a href="/">Library</a><a href="/shelf">Books</a><a href="/upload">Upload</a><a href="/settings">Settings</a>
        <form method="post" action="/logout"><button class="link">Sign out</button></form></nav>`
     : `<nav><a href="/login">Sign in</a></nav>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -211,4 +211,53 @@ export function settingsPage(email: string, syncKey: string, baseUrl: string): s
     <p class="ui muted">Sync address: <code>${esc(baseUrl)}/api/sync</code></p>
     <form method="post" action="/settings/rotate-key"><button>Make a new key</button></form>
     <p class="ui muted">Making a new key stops the old one from working.</p>`;
+}
+
+// The Calibre book list. Built for very old e-reader browsers (Kobo Touch, Kindle
+// experimental browser): plain HTML, no JavaScript, no CSS variables, big links.
+const SHELF_FORMATS = ["EPUB", "KEPUB", "PDF", "MOBI", "AZW3", "CBZ", "TXT"];
+
+export function shelfPage(opts: {
+  books: { id: number; title: string; authors: string[]; formats: string[] }[];
+  total: number; page: number; perPage: number; query: string; error?: string;
+}): string {
+  const { books, total, page, perPage, query } = opts;
+  const pages = Math.max(1, Math.ceil(total / perPage));
+  const link = (p: number) => `/shelf?${new URLSearchParams({ ...(query ? { q: query } : {}), page: String(p) })}`;
+  const rows = books.map((b) => {
+    const fmts = SHELF_FORMATS.filter((f) => b.formats.includes(f));
+    const dl = fmts.length
+      ? fmts.map((f) => `<a class="dl" href="/shelf/get/${b.id}/${f}">${f}</a>`).join(" ")
+      : `<span class="muted">No e-reader format</span>`;
+    return `<li><b>${esc(b.title)}</b><br><span class="muted">${esc(b.authors.join(", "))}</span><br>${dl}</li>`;
+  }).join("");
+  const nav = pages > 1
+    ? `<p class="pager">${page > 1 ? `<a href="${link(page - 1)}">&laquo; Previous</a>` : ""}
+       Page ${page} of ${pages}
+       ${page < pages ? `<a href="${link(page + 1)}">Next &raquo;</a>` : ""}</p>`
+    : "";
+  const body = opts.error
+    ? `<p class="err">${esc(opts.error)}</p>`
+    : books.length
+      ? `<p class="muted">${total} book${total === 1 ? "" : "s"}${query ? ` matching "${esc(query)}"` : ""}</p>${nav}<ul>${rows}</ul>${nav}`
+      : `<p>No books found.</p>`;
+  return `<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Home library</title>
+<style>
+body { font-family: serif; font-size: 20px; margin: 12px; color: #000; background: #fff; }
+h1 { font-size: 26px; margin: 0 0 10px; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { padding: 12px 0; border-bottom: 1px solid #999; }
+.muted { color: #555; font-size: 17px; }
+a.dl { display: inline-block; margin: 8px 12px 0 0; padding: 8px 16px; border: 2px solid #000; color: #000; text-decoration: none; font-weight: bold; }
+.pager a { margin: 0 14px; color: #000; }
+input { font-size: 20px; padding: 6px; width: 60%; }
+button { font-size: 20px; padding: 6px 12px; }
+.err { border: 2px solid #000; padding: 10px; }
+</style></head><body>
+<h1>Home library</h1>
+<form method="get" action="/shelf"><input type="text" name="q" value="${esc(query)}"> <button>Search</button></form>
+${body}
+<p class="muted"><a href="/">Back to dashboard</a></p>
+</body></html>`;
 }
