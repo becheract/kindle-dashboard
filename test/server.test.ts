@@ -128,3 +128,11 @@ test("shelf lists Calibre books and proxies downloads with the Calibre login", a
   const denied = await (await app.request("/shelf", { headers: { cookie } })).text();
   assert.match(denied, /refused the login/);
 });
+
+test("Calibre errors explain what went wrong", async (t) => {
+  const { calibreClient, CalibreError } = await import("../src/server/calibre.ts");
+  await assert.rejects(calibreClient({ url: "http://c", username: "u" }).search("", 0, 1), /CALIBRE_PASSWORD is empty/);
+  t.mock.method(globalThis, "fetch", async () => new Response("The username or password was empty", { status: 400 }));
+  await assert.rejects(calibreClient({ url: "http://c", username: "u", password: "p" }).search("", 0, 1),
+    (e: Error) => e instanceof CalibreError && /400: The username or password was empty/.test(e.message));
+});
