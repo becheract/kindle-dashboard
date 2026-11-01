@@ -51,6 +51,13 @@ sudo chmod -R a+r /tmp/books
 sudo -u calibre calibredb add --recurse /tmp/books --with-library /var/lib/calibre/library
 ```
 
+**Books already on the server?** Skip the copy and point `calibredb add` at that folder
+instead, for example `/srv/Books`. If you reach it from Windows as a mapped drive like
+`M:\Books`, run `net use` in PowerShell to see its share name, then find the matching
+`path =` line on the server with `grep -B1 -A3 -i books /etc/samba/smb.conf`. If the
+`calibre` user can't read the folder, give it read access without changing anything else:
+`sudo setfacl -R -m u:calibre:rX /srv/Books`.
+
 The first `calibredb add` also creates the library. Calibre reads each book's title,
 author and cover, so you don't need to tidy file names. Delete `/tmp/books` afterwards.
 
@@ -118,7 +125,9 @@ sudo chmod -R a+r /tmp/books
 calibredb add --recurse /tmp/books --with-library http://localhost:8080
 ```
 
-The new books show up in KOReader the next time you open the catalog. To remove a book,
+The new books show up in KOReader the next time you open the catalog. If your books live
+in a folder on the server, you can re-run the same command on that folder whenever you add
+some. Calibre skips books it already has (same title and author). To remove a book,
 find its id with `calibredb list --with-library http://localhost:8080` and run
 `calibredb remove <id> --with-library http://localhost:8080`.
 
