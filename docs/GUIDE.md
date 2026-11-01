@@ -51,6 +51,9 @@ Edit `/etc/kindle-dashboard.env` with `sudo nano /etc/kindle-dashboard.env`, the
 - **`TZ`**: your time zone, so word lookups show the right time. Example: `America/Toronto`.
 - **`PORT`**: the port the site listens on. The default is `3000`.
 - **`ALLOW_SIGNUP`**: set this to `false` once everyone has made an account, so nobody else can sign up.
+- **`CALIBRE_URL`**, **`CALIBRE_USER`**, **`CALIBRE_PASSWORD`**: optional. If you run a Calibre
+  content server, set these (for example `CALIBRE_URL=http://127.0.0.1:8080` and a Calibre login)
+  to turn on a plain book list at `/shelf`. See [Books for old e-reader browsers](#6-books-for-old-e-reader-browsers).
 
 ### If you can't open the site from another device
 
@@ -136,6 +139,14 @@ curl -H "Authorization: Bearer YOUR_SYNC_KEY" \
 ```
 
 ---
+
+### 6. Books for old e-reader browsers
+
+Some e-readers, like the Kobo Touch, have browsers too old for Calibre's own web page (it
+shows up blank). Once the Calibre settings above are filled in, open
+`http://<server-ip>:3000/shelf` on the e-reader, sign in with your dashboard account, and
+tap **EPUB** next to a book to download it. The page is plain HTML with no JavaScript, so
+old browsers can show it. It's also linked as **Books** at the top of the dashboard.
 
 ## Things to know
 

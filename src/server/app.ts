@@ -8,15 +8,17 @@ import {
   rotateSyncKey, SESSION_MAX_AGE, userForSession, type User,
 } from "./auth.ts";
 import type { DB } from "./db.ts";
+import { CalibreError, type CalibreClient } from "./calibre.ts";
 import { getDefinition } from "./definitions.ts";
 import { loadLibrary, mergeLibraries, saveLibrary } from "./store.ts";
-import { authPage, bookPage, layout, libraryPage, settingsPage, uploadPage } from "./views.ts";
+import { authPage, bookPage, layout, libraryPage, settingsPage, shelfPage, uploadPage } from "./views.ts";
 
 export interface AppConfig {
   db: DB;
   allowSignup: boolean;
   secureCookies: boolean;
   baseUrl?: string;
+  calibre?: CalibreClient;
 }
 
 type Env = { Variables: { user: User } };
@@ -142,6 +144,45 @@ export function createApp(cfg: AppConfig) {
   app.post("/settings/rotate-key", requireUser, (c) => {
     rotateSyncKey(db, c.get("user").id);
     return c.redirect("/settings");
+  });
+
+  // ---------- Calibre book list (for old e-reader browsers) ----------
+
+  const SHELF_PER_PAGE = 25;
+  app.get("/shelf", requireUser, async (c) => {
+    const query = (c.req.query("q") ?? "").trim();
+    const page = Math.max(1, Number.parseInt(c.req.query("page") ?? "1", 10) || 1);
+    const view = { books: [], total: 0, page, perPage: SHELF_PER_PAGE, query };
+    if (!cfg.calibre) {
+      return c.html(shelfPage({ ...view, error: "The book list isn't set up. Add CALIBRE_URL to /etc/kindle-dashboard.env." }), 503);
+    }
+    try {
+      const res = await cfg.calibre.search(query, (page - 1) * SHELF_PER_PAGE, SHELF_PER_PAGE);
+      return c.html(shelfPage({ ...view, ...res }));
+    } catch (e) {
+      if (!(e instanceof CalibreError)) throw e;
+      console.error("calibre:", e.message);
+      return c.html(shelfPage({ ...view, error: e.message }), 502);
+    }
+  });
+
+  app.get("/shelf/get/:id/:format", requireUser, async (c) => {
+    const id = Number(c.req.param("id"));
+    const format = c.req.param("format");
+    if (!cfg.calibre || !Number.isInteger(id) || !/^[A-Za-z0-9]{1,10}$/.test(format)) return c.notFound();
+    try {
+      const res = await cfg.calibre.download(id, format);
+      const out = new Headers();
+      for (const h of ["content-type", "content-length", "content-disposition", "last-modified"]) {
+        const v = res.headers.get(h);
+        if (v) out.set(h, v);
+      }
+      return new Response(res.body, { status: 200, headers: out });
+    } catch (e) {
+      if (!(e instanceof CalibreError)) throw e;
+      console.error("calibre:", e.message);
+      return c.html(shelfPage({ books: [], total: 0, page: 1, perPage: SHELF_PER_PAGE, query: "", error: e.message }), 502);
+    }
   });
 
   // ---------- API ----------

@@ -37,6 +37,7 @@ if [[ ! -f $ENV_FILE ]]; then
   cp "$REPO_DIR/deploy/kindle-dashboard.env.example" "$ENV_FILE"
   echo "Created $ENV_FILE. Edit it to change the port or time zone."
 fi
+chmod 600 "$ENV_FILE"  # it can hold the Calibre password
 
 cp "$REPO_DIR/deploy/kindle-dashboard.service" /etc/systemd/system/kindle-dashboard.service
 systemctl daemon-reload

@@ -85,3 +85,46 @@ test("sign up, upload, view a book, and sync with a key", async () => {
   assert.match(after, /My Book/);
   assert.match(after, /Other/);
 });
+
+test("shelf lists Calibre books and proxies downloads with the Calibre login", async (t) => {
+  const { calibreClient } = await import("../src/server/calibre.ts");
+  const seen: { url: string; auth: string | null }[] = [];
+  t.mock.method(globalThis, "fetch", async (url: string, init?: RequestInit) => {
+    seen.push({ url, auth: new Headers(init?.headers).get("authorization") });
+    if (url.includes("/ajax/search")) return Response.json({ total_num: 1, book_ids: [7] });
+    if (url.includes("/ajax/books")) return Response.json({ "7": { title: "Dune <1>", authors: ["Frank Herbert"], formats: ["EPUB", "AZW3"] } });
+    if (url.endsWith("/get/epub/7")) {
+      return new Response("EPUBDATA", { headers: { "content-type": "application/epub+zip", "content-disposition": 'attachment; filename="Dune.epub"' } });
+    }
+    return new Response("nope", { status: 404 });
+  });
+  const db = openDb(":memory:");
+  const app = createApp({
+    db, allowSignup: true, secureCookies: false,
+    calibre: calibreClient({ url: "http://calibre:8080/", username: "kobo", password: "pw" }),
+  });
+
+  assert.equal((await app.request("/shelf")).headers.get("location"), "/login");
+  const signup = await app.request("/signup", {
+    method: "POST", body: new URLSearchParams({ email: "a@b.c", password: "password123" }),
+  });
+  const cookie = signup.headers.get("set-cookie")!.split(";")[0];
+
+  const page = await (await app.request("/shelf?q=dune", { headers: { cookie } })).text();
+  assert.match(page, /Dune &lt;1&gt;/);
+  assert.match(page, /href="\/shelf\/get\/7\/EPUB"/);
+  assert.match(page, /href="\/shelf\/get\/7\/AZW3"/);
+  assert.doesNotMatch(page, /<script/);
+
+  const dl = await app.request("/shelf/get/7/EPUB", { headers: { cookie } });
+  assert.equal(dl.status, 200);
+  assert.equal(dl.headers.get("content-type"), "application/epub+zip");
+  assert.match(dl.headers.get("content-disposition")!, /Dune\.epub/);
+  assert.equal(await dl.text(), "EPUBDATA");
+  assert.equal(seen[0].url.startsWith("http://calibre:8080/ajax/search?"), true);
+  assert.ok(seen.every((s) => s.auth === "Basic " + Buffer.from("kobo:pw").toString("base64")));
+
+  t.mock.method(globalThis, "fetch", async () => new Response("", { status: 401 }));
+  const denied = await (await app.request("/shelf", { headers: { cookie } })).text();
+  assert.match(denied, /refused the login/);
+});
