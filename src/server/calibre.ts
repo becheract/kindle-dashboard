@@ -24,11 +24,15 @@ export class CalibreError extends Error {}
 export function calibreClient(cfg: CalibreConfig) {
   const base = cfg.url.replace(/\/$/, "");
   const headers: Record<string, string> = {};
+  const configError = cfg.username && !cfg.password
+    ? "CALIBRE_USER is set but CALIBRE_PASSWORD is empty in /etc/kindle-dashboard.env."
+    : undefined;
   if (cfg.username) {
     headers.authorization = "Basic " + Buffer.from(`${cfg.username}:${cfg.password ?? ""}`).toString("base64");
   }
 
   const get = async (path: string): Promise<Response> => {
+    if (configError) throw new CalibreError(configError);
     let res: Response;
     try {
       res = await fetch(base + path, { headers });
@@ -36,7 +40,10 @@ export function calibreClient(cfg: CalibreConfig) {
       throw new CalibreError(`Can't reach Calibre at ${base}. Is calibre-server running?`);
     }
     if (res.status === 401) throw new CalibreError("Calibre refused the login. Check CALIBRE_USER and CALIBRE_PASSWORD.");
-    if (!res.ok) throw new CalibreError(`Calibre answered ${res.status} for ${path}.`);
+    if (!res.ok) {
+      const why = (await res.text().catch(() => "")).trim().slice(0, 200);
+      throw new CalibreError(`Calibre answered ${res.status}${why ? `: ${why}` : ""}`);
+    }
     return res;
   };
 
