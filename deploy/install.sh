@@ -44,11 +44,22 @@ systemctl daemon-reload
 systemctl enable kindle-dashboard >/dev/null
 systemctl restart kindle-dashboard
 
-sleep 2
 port=$(grep -E '^PORT=' "$ENV_FILE" | cut -d= -f2); port=${port:-3000}
+
+# Ubuntu's firewall silently drops connections from other devices, which looks like a page
+# that loads forever. Open the port if the firewall is on.
+if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
+  ufw allow "$port/tcp" comment "kindle-dashboard" >/dev/null
+  echo "Opened port $port in the firewall."
+fi
+
+sleep 2
 if curl -fsS "http://127.0.0.1:$port/healthz" >/dev/null; then
-  ip=$(hostname -I | awk '{print $1}')
-  echo "Kindle Dashboard is running. Open http://$ip:$port on any device on your network."
+  echo "Kindle Dashboard is running. Open one of these on any device on your network:"
+  for ip in $(hostname -I); do
+    [[ $ip == *:* ]] && continue # skip IPv6
+    echo "  http://$ip:$port"
+  done
 else
   echo "Kindle Dashboard didn't start. See the log with: journalctl -u kindle-dashboard -n 50" >&2
   exit 1

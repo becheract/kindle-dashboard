@@ -58,8 +58,11 @@ Edit `/etc/kindle-dashboard.env` with `sudo nano /etc/kindle-dashboard.env`, the
 ### If you can't open the site from another device
 
 - Make sure the other device is on the same Wi‑Fi as the server.
-- If Ubuntu's firewall is on, allow the port from your home network:
-  `sudo ufw allow from 192.168.0.0/16 to any port 3000`
+- Type the address with `http://` at the start. Some browsers try `https://` and hang.
+- If the page loads forever, the firewall is usually blocking it. The installer opens the
+  port when Ubuntu's firewall (ufw) is on. If you use a different firewall, or changed the port later, run
+  `sudo ufw allow 3000/tcp`, using your port.
+- If the server has more than one IP address (`hostname -I`), try each one.
 - Check that it's running with `systemctl status kindle-dashboard`. See the log with `journalctl -u kindle-dashboard -n 50`.
 
 ### Updating
