@@ -1,0 +1,19 @@
+[Unit]
+Description=Calibre content server - book library and OPDS catalog for KOReader
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=calibre
+Group=calibre
+Environment=QT_QPA_PLATFORM=offscreen
+# OPDS catalog: http://<server-ip>:8080/opds
+# --enable-local-write lets `calibredb add` on the server add books while it runs.
+# Basic auth because KOReader's OPDS client only sends a plain username and password.
+ExecStart=/usr/bin/calibre-server --port=8080 --enable-local-write --enable-auth --auth-mode=basic --userdb=/var/lib/calibre/users.sqlite /var/lib/calibre/library
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
